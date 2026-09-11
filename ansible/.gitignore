@@ -1,0 +1,14 @@
+# Ansible
+*.retry
+
+# SSH
+*.pem
+id_*
+*.key
+
+# Secrets non chiffrés
+.env
+.env.*
+secrets/
+
+
