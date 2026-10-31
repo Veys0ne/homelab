@@ -1,0 +1,103 @@
+#################################################################
+# Prepare system
+#################################################################
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install dependancies
+  ansible.builtin.apt:
+    name:
+      - ca-certificates 
+      - curl
+    state: present
+
+
+#################################################################
+# Configure Docker repository
+#################################################################
+
+- name: Create Docker keyring directory
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Add Docker GPG key
+  get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: Get Debian architecture
+  ansible.builtin.command: dpkg --print-architecture
+  register: dpkg_arch
+  changed_when: false
+
+- name: Add Docker repository
+  ansible.builtin.deb822_repository:
+    name: docker
+    types: [deb]
+    uris: https://download.docker.com/linux/debian
+    suites: "{{ ansible_distribution_release }}"
+    components: [stable]
+    architectures: 
+      - "{{ dpkg_arch.stdout }}"
+    signed_by: /etc/apt/keyrings/docker.asc
+    state: present
+  register: docker_repo
+
+#################################################################
+# Install Docker
+#################################################################
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  when: docker_repo.changed
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+      - docker-buildx-plugin 
+    state: present
+
+#################################################################
+# Configure Docker
+#################################################################
+
+- name: Enable Docker service
+  ansible.builtin.systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Add user to Docker group
+  user:
+    name: "{{ docker_user }}"
+    groups: docker
+    append: yes
+
+#################################################################
+# Create directory structure
+#################################################################
+
+- name: create the directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_user }}"
+    group: "{{ docker_user }}"
+    mode: "0755"
+  loop:
+    - /opt/docker
+    - /opt/docker/stacks
+    - /opt/docker/data
+
+
