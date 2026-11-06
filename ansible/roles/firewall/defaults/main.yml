@@ -1,0 +1,7 @@
+# Default firewall policies
+
+ufw_default_incoming_policy: deny
+ufw_default_outgoing_policy: allow
+
+# SSH
+ufw_allow_ssh: true

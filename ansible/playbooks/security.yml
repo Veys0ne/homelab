@@ -1,0 +1,9 @@
+- name: Security config
+  hosts: all
+  become: true
+
+  roles:
+    - firewall
+    - fail2ban
+
+

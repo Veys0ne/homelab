@@ -1,0 +1,40 @@
+#################################################################
+# Installation
+#################################################################
+
+- name: Installation of ufw
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
+#################################################################
+# Default policies
+#################################################################
+
+- name: Default deny incoming
+  community.general.ufw:
+    default: "{{ ufw_default_incoming_policy }}"
+    direction: incoming
+
+- name: Default allow outgoing
+  community.general.ufw:
+    default: "{{ ufw_default_outgoing_policy}}"
+    direction: outgoing
+
+#################################################################
+# Creation of the rules
+#################################################################
+
+- name: Allowing OpenSSH
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+  when: ufw_allow_ssh 
+
+#################################################################
+# Enabling the rules
+#################################################################
+
+- name: Enabling the rules
+  community.general.ufw:
+    state: enabled

@@ -1,0 +1,67 @@
+#################################################################
+# Installation
+#################################################################
+
+- name: Installation of fail2ban
+  ansible.builtin.apt:
+    name: fail2ban
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+#################################################################
+# Creating the environment
+#################################################################
+
+- name: Creating the file jail.local
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/jail.local
+    content: |
+      [DEFAULT]
+      # Ban IPs for 1 hour (3600 seconds)
+      bantime = 3600
+
+      # Window in which to count failures (10 minutes)
+      findtime = 600
+
+      # Number of failures before banning
+      maxretry = 5
+
+      # Use UFW as the action
+      banaction = ufw
+
+      # Email notifications (optional)
+      # destemail = admin@example.com
+      # sendername = fail2ban
+      # mta = sendmail
+      # action = %(action_mwl)s  # Ban + email with log lines
+
+      # Ignore these IPs (never ban)
+      ignoreip = {{ fail2ban_ignoreip | join(' ') }}
+
+      # Backend for log detection
+      backend = auto
+
+      # SSH jail
+      [sshd]
+      enabled = true
+      port = ssh
+      filter = sshd
+      logpath = /var/log/auth.log
+      maxretry = 3
+      bantime = 3600
+      findtime = 300
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Fail2ban
+
+#################################################################
+# Enable the service
+#################################################################
+
+- name: Enable Fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    enabled: true
+    state: started
