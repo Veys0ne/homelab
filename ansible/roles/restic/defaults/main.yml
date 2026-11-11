@@ -1,0 +1,19 @@
+# mounting point
+restic_backup_mount: /mnt/backups
+
+restic_repository: "{{ restic_backup_mount }}/restic/server"
+
+restic_password_file: /etc/restic/password
+
+restic_backup_uuid: "89eef557-2c38-43fb-ad72-662c1d8552dd"
+restic_backup_filesystem: ext4
+
+# elements to save
+restic_backup_paths:
+  - /etc
+  - /opt/docker
+  - /home/server
+
+restic_keep_daily: 7
+restic_keep_weekly: 4
+restic_keep_monthly: 6

@@ -1,0 +1,6 @@
+- name: Backup implementation
+  hosts: all
+  become: true
+  
+  roles:
+    - restic
