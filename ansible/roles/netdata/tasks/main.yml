@@ -1,0 +1,69 @@
+#################################################################
+# Create the directories
+#################################################################
+
+- name: Create Netdata stacks directory
+  ansible.builtin.file:
+    path: /opt/docker/stacks/netdata
+    state: directory
+    owner: server
+    group: server
+    mode: '0755'
+
+- name: Create Netdata data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: server
+    group: server
+    mode: '0755'
+  loop:
+    - /opt/docker/data/netdata
+    - /opt/docker/data/netdata/config
+    - /opt/docker/data/netdata/lib
+    - /opt/docker/data/netdata/cache
+
+#################################################################
+# Create docker-compose
+#################################################################
+
+- name: Creating the docker-compose.yml
+  ansible.builtin.copy:
+    dest: /opt/docker/stacks/netdata/docker-compose.yml
+    content: |
+      version: '3'
+      services:
+        netdata:
+          image: netdata/netdata
+          container_name: netdata
+          pid: host
+          network_mode: host
+          restart: unless-stopped
+          cap_add:
+            - SYS_PTRACE
+            - SYS_ADMIN
+          security_opt:
+            - apparmor:unconfined
+          volumes:
+            - /opt/docker/data/netdata/config:/etc/netdata
+            - /opt/docker/data/netdata/lib:/var/lib/netdata
+            - /opt/docker/data/netdata/cache:/var/cache/netdata
+            - /:/host/root:ro,rslave
+            - /etc/passwd:/host/etc/passwd:ro
+            - /etc/group:/host/etc/group:ro
+            - /etc/localtime:/etc/localtime:ro
+            - /proc:/host/proc:ro
+            - /sys:/host/sys:ro
+            - /etc/os-release:/host/etc/os-release:ro
+            - /var/log:/host/var/log:ro
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - /run/dbus:/run/dbus:ro
+
+#################################################################
+# Docker compose up -d
+#################################################################
+
+- name: Docker Compose up 
+  ansible.builtin.command: 
+    cmd: docker compose up -d
+    chdir: /opt/docker/stacks/netdata

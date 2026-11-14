@@ -1,0 +1,48 @@
+#################################################################
+# Create the directories
+#################################################################
+
+- name: Create the stacks directory
+  ansible.builtin.file:
+    path: /opt/docker/stacks/portainer
+    state: directory
+    owner: server
+    group: server
+    mode: '0755'
+
+- name: Create the data directory
+  ansible.builtin.file:
+    path: /opt/docker/data/portainer
+    state: directory
+    owner: server
+    group: server
+    mode: '0755'
+
+#################################################################
+# Create docker-compose
+#################################################################
+
+- name: Creating the docker-compose.yml
+  ansible.builtin.copy:
+    dest: /opt/docker/stacks/portainer/docker-compose.yml
+    content: |
+      services:
+        portainer:
+          image: {{ portainer_image }}
+          container_name: portainer
+          restart: unless-stopped
+          ports: 
+            - "9443:9443"
+          volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /opt/docker/data/portainer:/data
+
+
+#################################################################
+# Docker compose up -d
+#################################################################
+
+- name: Docker Compose up 
+  ansible.builtin.command: 
+    cmd: docker compose up -d
+    chdir: /opt/docker/stacks/portainer

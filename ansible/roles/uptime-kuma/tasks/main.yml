@@ -1,0 +1,48 @@
+#################################################################
+# Create the directories
+#################################################################
+
+- name: Create the stacks directory
+  ansible.builtin.file:
+    path: /opt/docker/stacks/uptime-kuma
+    state: directory
+    owner: server
+    group: server
+    mode: '0755'
+
+- name: Create the data directory
+  ansible.builtin.file:
+    path: /opt/docker/data/uptime-kuma
+    state: directory
+    owner: server
+    group: server
+    mode: '0755'
+
+#################################################################
+# Create docker-compose
+#################################################################
+
+- name: Creating the docker-compose.yml
+  ansible.builtin.copy:
+    dest: /opt/docker/stacks/uptime-kuma/docker-compose.yml
+    content: |
+      services:
+        uptime-kuma:
+          image: louislam/uptime-kuma:2
+          container_name: uptime-kuma
+          restart: unless-stopped
+
+          ports:
+            - "3001:3001"
+
+          volumes:
+            - /opt/docker/data/uptime-kuma:/app/data
+
+#################################################################
+# Docker compose up -d
+#################################################################
+
+- name: Docker Compose up 
+  ansible.builtin.command: 
+    cmd: docker compose up -d
+    chdir: /opt/docker/stacks/uptime-kuma

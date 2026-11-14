@@ -1,0 +1,8 @@
+- name: Services configuration
+  hosts: all
+  become: true
+
+  roles:
+    - netdata
+    - uptime-kuma
+    - portainer
